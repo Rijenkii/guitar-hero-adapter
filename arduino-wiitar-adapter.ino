@@ -19,8 +19,10 @@ Joystick_ Joystick(
   false                       // includeSteering
 );
 
+#define ADDRESS 0x52
+
 void send_byte(byte data, byte location) {
-  Wire.beginTransmission(0x52);
+  Wire.beginTransmission(ADDRESS);
   Wire.write(location);
   Wire.write(data);
   Wire.endTransmission();
@@ -28,14 +30,20 @@ void send_byte(byte data, byte location) {
 }
 
 void setup() {
+  // Initizlize I2C
+  //
+  // Wiitars should work at speeds up to 400000 bits/sec, but mine does not
+  // But we only read 6 bytes at a time, so I don't think that it really maters
   Wire.begin();
   Wire.setClock(350000);
 
+  // Initialize joystick
   Joystick.begin(false);
   Joystick.setXAxisRange(0, 63);
   Joystick.setYAxisRange(0, 63);
   Joystick.setZAxisRange(0, 31);
 
+  // Initialize unencrypted connection
   send_byte(0x55, 0xF0);
   send_byte(0x00, 0xFB);
 }
@@ -43,9 +51,13 @@ void setup() {
 byte data[6];
 
 void loop() {
+  // Request state from the guitar
+  send_byte(0, 0);
+  
   {
+    // Read state from the guitar
     byte count = 0;
-    Wire.requestFrom(0x52, 6);
+    Wire.requestFrom(ADDRESS, 6);
     while (Wire.available())
       data[count++] = Wire.read();
   }
@@ -67,6 +79,4 @@ void loop() {
   Joystick.setZAxis(data[3] & 0b00011111); // Whammy
 
   Joystick.sendState();
-
-  send_byte(0, 0);
 }
