@@ -6,7 +6,7 @@ Everything works: 5 fret buttons, strum up/down, +/- buttons, stick and whammy.
 
 ## Requirements
 
-* Board with an ATmega32u4 processor (Arduino Leonardo, SparkFun Pro Micro or cheaper clones)
+* Board with an ATmega32u4 processor (Arduino Leonardo, SparkFun Pro Micro or cheaper clones). **Arduino Uno, Nano and many other popular boards are based on an ATmega168/328 processors, and thus are unsuitable**
 * AMS1117 module or similar (5V -> 3.3V)
 * Bi-directional logic level converter (5V <-> 3.3V)
 
