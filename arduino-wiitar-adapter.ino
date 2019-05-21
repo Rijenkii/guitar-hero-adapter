@@ -1,5 +1,7 @@
 // Try to identify broken state packets
 #define VERIFY 0
+// Android-compatible build, but more unused buttons
+#define ANDROID 0
 
 #include <Wire.h>
 #include "Joystick.h"
@@ -7,7 +9,11 @@
 Joystick_ Joystick(
   JOYSTICK_DEFAULT_REPORT_ID, // hidReportId
   JOYSTICK_TYPE_GAMEPAD,      // joystickType
-  9,                          // buttonCount
+#if ANDROID                   // buttonCount
+  14,
+#else
+  9,
+#endif
   0,                          // hatSwitchCount
   true,                       // includeXAxis
   true,                       // includeYAxis
@@ -104,6 +110,19 @@ void loop() {
   }
 #endif
 
+#if ANDROID
+  Joystick.setButton(0, !(data[5] & 0b00010000)); // Fret green
+  Joystick.setButton(1, !(data[5] & 0b01000000)); // Fret red
+  Joystick.setButton(3, !(data[5] & 0b00001000)); // Fret yellow
+  Joystick.setButton(4, !(data[5] & 0b00100000)); // Fret blue
+  Joystick.setButton(6, !(data[5] & 0b10000000)); // Fret orange
+
+  Joystick.setButton(7, !(data[4] & 0b01000000)); // Strum down
+  Joystick.setButton(11, !(data[5] & 0b00000001)); // Strum up
+
+  Joystick.setButton(12, !(data[4] & 0b00010000)); // Button minus
+  Joystick.setButton(13, !(data[4] & 0b00000100)); // Button plus
+#else
   Joystick.setButton(0, !(data[5] & 0b00010000)); // Fret green
   Joystick.setButton(1, !(data[5] & 0b01000000)); // Fret red
   Joystick.setButton(2, !(data[5] & 0b00001000)); // Fret yellow
@@ -115,6 +134,7 @@ void loop() {
 
   Joystick.setButton(7, !(data[4] & 0b00010000)); // Button minus
   Joystick.setButton(8, !(data[4] & 0b00000100)); // Button plus
+#endif
 
   Joystick.setXAxis(data[0] & 0b00111111); // Stick X
   Joystick.setYAxis(data[1] & 0b00111111); // Stick Y
