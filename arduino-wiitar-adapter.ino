@@ -1,3 +1,6 @@
+// Try to identify broken state packets
+#define VERIFY 0
+
 #include <Wire.h>
 #include "Joystick.h"
 
@@ -29,6 +32,21 @@ void send_byte(byte data, byte location) {
   delay(1);
 }
 
+void read_state(byte data[6]) {
+  send_byte(0, 0);
+  
+  // Read state from the guitar
+  byte count = 0;
+  Wire.requestFrom(ADDRESS, 6);
+  while (Wire.available())
+    data[count++] = Wire.read();
+}
+
+#if VERIFY
+byte GH3;
+byte ZERO;
+#endif
+
 void setup() {
   // Initizlize I2C
   //
@@ -46,21 +64,45 @@ void setup() {
   // Initialize unencrypted connection
   send_byte(0x55, 0xF0);
   send_byte(0x00, 0xFB);
+
+#if VERIFY
+  // Identify what bits should be at GH3 and "0" positions
+  // http://www.wiibrew.org/wiki/Wiimote/Extension_Controllers/Guitar_Hero_(Wii)_Guitars
+  byte temp1 = 0;
+  byte temp2 = 0;
+  byte data[6];
+  for (byte _ = 0; _ < 20; _++) {
+    read_state(data);
+    
+    temp1 += ((data[0] >> 7) & 1) + ((data[0] >> 6) & 1);
+    temp1 += ((data[1] >> 7) & 1) + ((data[1] >> 6) & 1);
+
+    temp2 += ((data[2] >> 7) & 1) + ((data[2] >> 6) & 1) + ((data[2] >> 5) & 1);
+    temp2 += ((data[3] >> 7) & 1) + ((data[3] >> 6) & 1) + ((data[3] >> 5) & 1);
+  }
+  GH3 = temp1 > 40 ? 0b11000000 : 0b0000000;
+  ZERO = temp2 > 60 ? 0b11100000 : 0b0000000;
+#endif
 }
 
 byte data[6];
 
 void loop() {
   // Request state from the guitar
-  send_byte(0, 0);
-  
-  {
-    // Read state from the guitar
-    byte count = 0;
-    Wire.requestFrom(ADDRESS, 6);
-    while (Wire.available())
-      data[count++] = Wire.read();
+  read_state(data);
+
+#if VERIFY
+  if (
+    (data[0] & 0b11000000) != GH3 ||
+    (data[1] & 0b11000000) != GH3 ||
+    (data[2] & 0b11100000) != ZERO ||
+    (data[3] & 0b11100000) != ZERO ||
+    (data[4] & 0b10101011) != 0b10101011 ||
+    (data[5] & 0b00000110) != 0b00000110
+  ) {
+    return;
   }
+#endif
 
   Joystick.setButton(0, !(data[5] & 0b00010000)); // Fret green
   Joystick.setButton(1, !(data[5] & 0b01000000)); // Fret red
