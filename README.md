@@ -2,7 +2,9 @@
 
 ## Features
 
-Everything works: 5 fret buttons, strum up/down, +/- buttons, stick and whammy.
+* 5 frets, strum up/down, +/- buttons, stick, **whammy**
+* Optional packet verification, if your connection to the guitar is bad
+* Optional Android support
 
 ## Requirements
 
