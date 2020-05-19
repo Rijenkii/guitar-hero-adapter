@@ -14,6 +14,10 @@
 
 You can omit the last two items if you have a 3.3V board or if you like risking (Wii Nunchucks can work at 5V, but I haven't seen anyone conencting wiitars to 5V).
 
+## Dependencies
+
+* [ArduinoJoystickLibrary](https://github.com/MHeironimus/ArduinoJoystickLibrary), installation instructions are in the projects README
+
 ## Wiring
 
 Safe 5V wiring with SparkFun Pro Micro:
